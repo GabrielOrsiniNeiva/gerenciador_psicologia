@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Consultas</h1>
+    <a href="{{ url_for('create_appointment') }}" class="btn btn-primary">
+        <i data-feather="plus"></i> Nova Consulta
+    </a>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('list_appointments') }}" class="row g-3">
+            <div class="col-md-4">
+                <label for="start_date" class="form-label">Data Inicial</label>
+                <input type="date" name="start_date" id="start_date" class="form-control" value="{{ request.args.get('start_date', '') }}">
+            </div>
+            <div class="col-md-4">
+                <label for="end_date" class="form-label">Data Final</label>
+                <input type="date" name="end_date" id="end_date" class="form-control" value="{{ request.args.get('end_date', '') }}">
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-secondary w-100">
+                    <i data-feather="search"></i> Filtrar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if appointments %}
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Data</th>
+                <th>Horário</th>
+                <th>Paciente</th>
+                <th>Status</th>
+                <th>Valor</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for appointment in appointments %}
+            <tr>
+                <td>{{ appointment.date.strftime('%d/%m/%Y') }}</td>
+                <td>{{ appointment.date.strftime('%H:%M') }}</td>
+                <td>{{ appointment.patient.name }}</td>
+                <td>
+                    {% if appointment.status == 'scheduled' %}
+                    <span class="badge bg-primary">Agendada</span>
+                    {% elif appointment.status == 'completed' %}
+                    <span class="badge bg-success">Realizada</span>
+                    {% else %}
+                    <span class="badge bg-danger">Cancelada</span>
+                    {% endif %}
+                </td>
+                <td>R$ {{ "%.2f"|format(appointment.value) }}</td>
+                <td>
+                    <div class="btn-group" role="group">
+                        <a href="{{ url_for('view_appointment', id=appointment.id) }}" class="btn btn-sm btn-outline-secondary">
+                            <i data-feather="eye"></i>
+                        </a>
+                        <a href="{{ url_for('edit_appointment', id=appointment.id) }}" class="btn btn-sm btn-outline-secondary">
+                            <i data-feather="edit"></i>
+                        </a>
+                        {% if appointment.status == 'scheduled' %}
+                        <form action="{{ url_for('cancel_appointment', id=appointment.id) }}" method="POST" class="d-inline">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Tem certeza que deseja cancelar esta consulta?')">
+                                <i data-feather="x"></i>
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-info">
+    Nenhuma consulta encontrada no período selecionado.
+</div>
+{% endif %}
+{% endblock %}

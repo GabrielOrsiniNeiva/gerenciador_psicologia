@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title mb-0">Detalhes do Pagamento</h2>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-3">Paciente</dt>
+                    <dd class="col-sm-9">{{ payment.patient.name }}</dd>
+
+                    <dt class="col-sm-3">Data</dt>
+                    <dd class="col-sm-9">{{ payment.date.strftime('%d/%m/%Y %H:%M') }}</dd>
+
+                    <dt class="col-sm-3">Valor</dt>
+                    <dd class="col-sm-9">R$ {{ "%.2f"|format(payment.value) }}</dd>
+
+                    <dt class="col-sm-3">Método</dt>
+                    <dd class="col-sm-9">{{ payment.payment_method }}</dd>
+
+                    {% if payment.notes %}
+                    <dt class="col-sm-3">Observações</dt>
+                    <dd class="col-sm-9">{{ payment.notes }}</dd>
+                    {% endif %}
+                </dl>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{{ url_for('list_payments') }}" class="btn btn-secondary">
+                        <i data-feather="arrow-left"></i> Voltar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

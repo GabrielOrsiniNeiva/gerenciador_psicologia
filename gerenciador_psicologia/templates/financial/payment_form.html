@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title mb-0">Registrar Pagamento</h2>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('register_payment') }}" class="needs-validation" novalidate>
+                    <div class="mb-3">
+                        <label for="patient_id" class="form-label">Paciente</label>
+                        <select class="form-select" id="patient_id" name="patient_id" required>
+                            <option value="">Selecione um paciente</option>
+                            {% for patient in patients %}
+                            <option value="{{ patient.id }}">{{ patient.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="invalid-feedback">
+                            Por favor, selecione um paciente.
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="value" class="form-label">Valor</label>
+                        <div class="input-group">
+                            <span class="input-group-text">R$</span>
+                            <input type="number" step="0.01" class="form-control" id="value" name="value" required>
+                        </div>
+                        <div class="invalid-feedback">
+                            Por favor, informe o valor do pagamento.
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="payment_method" class="form-label">Método de Pagamento</label>
+                        <select class="form-select" id="payment_method" name="payment_method" required>
+                            <option value="">Selecione o método</option>
+                            <option value="cash">Dinheiro</option>
+                            <option value="credit_card">Cartão de Crédito</option>
+                            <option value="debit_card">Cartão de Débito</option>
+                            <option value="pix">PIX</option>
+                            <option value="transfer">Transferência</option>
+                        </select>
+                        <div class="invalid-feedback">
+                            Por favor, selecione o método de pagamento.
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="date" class="form-label">Data do Pagamento</label>
+                        <input type="datetime-local" class="form-control" id="date" name="date" required>
+                        <div class="invalid-feedback">
+                            Por favor, informe a data do pagamento.
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Observações</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('list_payments') }}" class="btn btn-secondary">
+                            <i data-feather="arrow-left"></i> Voltar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i data-feather="save"></i> Registrar Pagamento
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

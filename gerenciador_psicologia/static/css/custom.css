@@ -1,0 +1,71 @@
+/* Custom styles to complement Bootstrap */
+:root {
+    --medical-blue: #2c3e50;
+    --medical-light: #ecf0f1;
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+
+/* Card styling */
+.card {
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    background-color: var(--bs-dark);
+    border-bottom: 1px solid var(--bs-border-color);
+}
+
+/* Table improvements */
+.table th {
+    background-color: var(--bs-dark);
+    border-bottom: 2px solid var(--bs-border-color);
+}
+
+/* Button spacing for icon groups */
+.btn-group .btn {
+    margin-right: 2px;
+}
+
+/* Form styling */
+.form-control:focus {
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 0.2rem rgba(44, 62, 80, 0.25);
+}
+
+/* Navbar customization */
+.navbar {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand i {
+    margin-right: 8px;
+}
+
+/* Footer styling */
+.footer {
+    background-color: var(--bs-dark) !important;
+    padding: 1rem 0;
+    margin-top: auto;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .btn-group {
+        display: flex;
+        flex-direction: row;
+    }
+    
+    .table-responsive {
+        margin-bottom: 1rem;
+    }
+}

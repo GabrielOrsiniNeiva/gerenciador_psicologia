@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Pagamentos</h1>
+    <a href="{{ url_for('register_payment') }}" class="btn btn-primary">
+        <i data-feather="plus"></i> Novo Pagamento
+    </a>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('list_payments') }}" class="row g-3">
+            <div class="col-md-4">
+                <label for="start_date" class="form-label">Data Inicial</label>
+                <input type="date" name="start_date" id="start_date" class="form-control" value="{{ request.args.get('start_date', '') }}">
+            </div>
+            <div class="col-md-4">
+                <label for="end_date" class="form-label">Data Final</label>
+                <input type="date" name="end_date" id="end_date" class="form-control" value="{{ request.args.get('end_date', '') }}">
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-secondary w-100">
+                    <i data-feather="search"></i> Filtrar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if payments %}
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Data</th>
+                <th>Paciente</th>
+                <th>Valor</th>
+                <th>Método</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for payment in payments %}
+            <tr>
+                <td>{{ payment.date.strftime('%d/%m/%Y') }}</td>
+                <td>{{ payment.patient.name }}</td>
+                <td>R$ {{ "%.2f"|format(payment.value) }}</td>
+                <td>{{ payment.payment_method }}</td>
+                <td>
+                    <a href="{{ url_for('view_payment', id=payment.id) }}" class="btn btn-sm btn-outline-secondary">
+                        <i data-feather="eye"></i>
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr class="table-info">
+                <td colspan="2"><strong>Total</strong></td>
+                <td colspan="3"><strong>R$ {{ "%.2f"|format(total_value) }}</strong></td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-info">
+    Nenhum pagamento registrado no período selecionado.
+</div>
+{% endif %}
+{% endblock %}

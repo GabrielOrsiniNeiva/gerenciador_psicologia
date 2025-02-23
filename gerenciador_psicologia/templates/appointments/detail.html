@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title mb-0">Detalhes da Consulta</h2>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-3">Paciente</dt>
+                    <dd class="col-sm-9">{{ appointment.patient.name }}</dd>
+
+                    <dt class="col-sm-3">Data</dt>
+                    <dd class="col-sm-9">{{ appointment.date.strftime('%d/%m/%Y') }}</dd>
+
+                    <dt class="col-sm-3">Horário</dt>
+                    <dd class="col-sm-9">{{ appointment.date.strftime('%H:%M') }}</dd>
+
+                    <dt class="col-sm-3">Status</dt>
+                    <dd class="col-sm-9">
+                        {% if appointment.status == 'scheduled' %}
+                        <span class="badge bg-primary">Agendada</span>
+                        {% elif appointment.status == 'completed' %}
+                        <span class="badge bg-success">Realizada</span>
+                        {% else %}
+                        <span class="badge bg-danger">Cancelada</span>
+                        {% endif %}
+                    </dd>
+
+                    <dt class="col-sm-3">Valor</dt>
+                    <dd class="col-sm-9">R$ {{ "%.2f"|format(appointment.value) }}</dd>
+
+                    {% if appointment.notes %}
+                    <dt class="col-sm-3">Observações</dt>
+                    <dd class="col-sm-9">{{ appointment.notes }}</dd>
+                    {% endif %}
+                </dl>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{{ url_for('list_appointments') }}" class="btn btn-secondary">
+                        <i data-feather="arrow-left"></i> Voltar
+                    </a>
+                    {% if appointment.status == 'scheduled' %}
+                    <div>
+                        <a href="{{ url_for('edit_appointment', id=appointment.id) }}" class="btn btn-primary">
+                            <i data-feather="edit"></i> Editar
+                        </a>
+                        <form action="{{ url_for('cancel_appointment', id=appointment.id) }}" method="POST" class="d-inline">
+                            <button type="submit" class="btn btn-danger" onclick="return confirm('Tem certeza que deseja cancelar esta consulta?')">
+                                <i data-feather="x"></i> Cancelar
+                            </button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
