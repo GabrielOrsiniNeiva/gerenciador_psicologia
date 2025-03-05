@@ -8,7 +8,14 @@ document.addEventListener('DOMContentLoaded', function() {
         headerToolbar: {
             left: 'prev,next today',
             center: 'title',
-            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            right: 'dayGridMonth,timeGridWeek,timeGridWorkWeek,timeGridDay'
+        },
+        views: {
+            timeGridWorkWeek: {
+                type: 'timeGrid',
+                duration: { days: 5 },
+                buttonText: 'Semana Útil'
+            }
         },
         slotMinTime: '07:00:00',
         slotMaxTime: '20:00:00',
