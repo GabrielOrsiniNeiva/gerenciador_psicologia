@@ -1,87 +1,136 @@
 {% extends "base.html" %}
 
-{% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>Consultas</h1>
-    <a href="{{ url_for('create_appointment') }}" class="btn btn-primary">
-        <i data-feather="plus"></i> Nova Consulta
-    </a>
-</div>
+{% block head %}
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales-all.min.js"></script>
+<script src="{{ url_for('static', filename='js/calendar.js') }}"></script>
+{% endblock %}
 
-<div class="card mb-4">
-    <div class="card-body">
-        <form method="GET" action="{{ url_for('list_appointments') }}" class="row g-3">
-            <div class="col-md-4">
-                <label for="start_date" class="form-label">Data Inicial</label>
-                <input type="date" name="start_date" id="start_date" class="form-control" value="{{ request.args.get('start_date', '') }}">
-            </div>
-            <div class="col-md-4">
-                <label for="end_date" class="form-label">Data Final</label>
-                <input type="date" name="end_date" id="end_date" class="form-control" value="{{ request.args.get('end_date', '') }}">
-            </div>
-            <div class="col-md-4 d-flex align-items-end">
-                <button type="submit" class="btn btn-secondary w-100">
-                    <i data-feather="search"></i> Filtrar
-                </button>
-            </div>
-        </form>
+{% block content %}
+<div class="container-fluid py-4">
+    <h1 class="mb-4">Agenda de Consultas</h1>
+    
+    <div id="alertContainer" class="position-fixed top-0 end-0 p-3" style="z-index: 1050"></div>
+    
+    <div class="row">
+        <div class="col-12">
+            <div id="calendar"></div>
+        </div>
     </div>
 </div>
 
-{% if appointments %}
-<div class="table-responsive">
-    <table class="table table-hover">
-        <thead>
-            <tr>
-                <th>Data</th>
-                <th>Horário</th>
-                <th>Paciente</th>
-                <th>Status</th>
-                <th>Valor</th>
-                <th>Ações</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for appointment in appointments %}
-            <tr>
-                <td>{{ appointment.date.strftime('%d/%m/%Y') }}</td>
-                <td>{{ appointment.date.strftime('%H:%M') }}</td>
-                <td>{{ appointment.patient.name }}</td>
-                <td>
-                    {% if appointment.status == 'scheduled' %}
-                    <span class="badge bg-primary">Agendada</span>
-                    {% elif appointment.status == 'completed' %}
-                    <span class="badge bg-success">Realizada</span>
-                    {% else %}
-                    <span class="badge bg-danger">Cancelada</span>
-                    {% endif %}
-                </td>
-                <td>R$ {{ "%.2f"|format(appointment.value) }}</td>
-                <td>
-                    <div class="btn-group" role="group">
-                        <a href="{{ url_for('view_appointment', id=appointment.id) }}" class="btn btn-sm btn-outline-secondary">
-                            <i data-feather="eye"></i>
-                        </a>
-                        <a href="{{ url_for('edit_appointment', id=appointment.id) }}" class="btn btn-sm btn-outline-secondary">
-                            <i data-feather="edit"></i>
-                        </a>
-                        {% if appointment.status == 'scheduled' %}
-                        <form action="{{ url_for('cancel_appointment', id=appointment.id) }}" method="POST" class="d-inline">
-                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Tem certeza que deseja cancelar esta consulta?')">
-                                <i data-feather="x"></i>
-                            </button>
-                        </form>
-                        {% endif %}
+<!-- Modal de Consulta -->
+<div class="modal fade" id="appointmentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Nova Consulta</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="appointmentForm">
+                <div class="modal-body">
+                    <input type="hidden" id="appointmentId" name="appointmentId">
+                    
+                    <div class="mb-3">
+                        <label for="appointmentDate" class="form-label">Data e Hora</label>
+                        <input type="datetime-local" class="form-control" id="appointmentDate" name="date" required>
                     </div>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                    
+                    <div class="mb-3">
+                        <label for="patientId" class="form-label">Paciente</label>
+                        <select class="form-select" id="patientId" name="patientId" required>
+                            <option value="">Selecione um paciente</option>
+                            {% for patient in patients %}
+                            <option value="{{ patient.id }}">{{ patient.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="value" class="form-label">Valor</label>
+                        <input type="number" class="form-control" id="value" name="value" step="0.01" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="is_recurring" name="is_recurring">
+                            <label class="form-check-label" for="is_recurring">
+                                Consulta Recorrente
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div id="recurrenceOptions" class="mb-3 d-none">
+                        <div class="mb-3">
+                            <label for="recurrence_frequency" class="form-label">Frequência</label>
+                            <select class="form-select" id="recurrence_frequency" name="recurrence_frequency">
+                                <option value="weekly">Semanal</option>
+                                <option value="biweekly">Quinzenal</option>
+                                <option value="monthly">Mensal</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="recurrence_until" class="form-label">Até</label>
+                            <input type="date" class="form-control" id="recurrence_until" name="recurrence_until">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Observações</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" id="deleteButton">Excluir</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
-{% else %}
-<div class="alert alert-info">
-    Nenhuma consulta encontrada no período selecionado.
+
+<!-- Modal de Confirmação de Exclusão -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Exclusão</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="deleteConfirmForm">
+                <div class="modal-body">
+                    <input type="hidden" id="deleteConfirmId">
+                    <p>Tem certeza que deseja excluir esta consulta?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">Excluir</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
-{% endif %}
+
+<script>
+document.getElementById('is_recurring').addEventListener('change', function() {
+    const recurrenceOptions = document.getElementById('recurrenceOptions');
+    recurrenceOptions.classList.toggle('d-none', !this.checked);
+    
+    const frequencySelect = document.getElementById('recurrence_frequency');
+    const untilInput = document.getElementById('recurrence_until');
+    
+    if (this.checked) {
+        frequencySelect.required = true;
+        untilInput.required = true;
+    } else {
+        frequencySelect.required = false;
+        untilInput.required = false;
+        frequencySelect.value = '';
+        untilInput.value = '';
+    }
+});
+</script>
 {% endblock %}

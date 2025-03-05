@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, flash
+from flask import render_template, request, redirect, url_for, flash, jsonify
 import logging
 from datetime import datetime, date
 from .app import app, db
@@ -119,7 +119,8 @@ def list_appointments():
         query = query.filter(Appointment.date <= datetime.strptime(end_date, '%Y-%m-%d'))
 
     appointments = query.order_by(Appointment.date.desc()).all()
-    return render_template('appointments/list.html', appointments=appointments)
+    patients = Patient.query.order_by(Patient.name).all()
+    return render_template('appointments/list.html', appointments=appointments, patients=patients)
 
 @app.route('/appointments/new', methods=['GET', 'POST'])
 def create_appointment():
@@ -275,6 +276,195 @@ def cancel_appointment(id):
         flash(f'Erro ao cancelar consulta: {str(e)}', 'danger')
         logging.error(f'Erro ao cancelar consulta: {str(e)}')
     return redirect(url_for('list_appointments'))
+
+@app.route('/api/appointments')
+def get_appointments():
+    """
+    API endpoint para retornar todas as consultas em formato compatível com FullCalendar.
+    Suporta filtragem por intervalo de datas.
+    """
+    start = request.args.get('start')
+    end = request.args.get('end')
+    
+    query = Appointment.query.join(Patient)
+    
+    if start:
+        query = query.filter(Appointment.date >= datetime.fromisoformat(start))
+    if end:
+        query = query.filter(Appointment.date <= datetime.fromisoformat(end))
+        
+    appointments = query.all()
+    events = []
+    
+    for appointment in appointments:
+        event = {
+            'id': appointment.id,
+            'title': f'Consulta - {appointment.patient.name}',
+            'start': appointment.date.isoformat(),
+            'end': (appointment.date + relativedelta(hours=1)).isoformat(),
+            'extendedProps': {
+                'patientId': appointment.patient_id,
+                'value': float(appointment.value),
+                'notes': appointment.notes,
+                'isRecurring': appointment.is_recurring,
+                'recurrenceFrequency': appointment.recurrence_frequency,
+                'recurrenceUntil': appointment.recurrence_until.isoformat() if appointment.recurrence_until else None
+            }
+        }
+        
+        if appointment.status == 'cancelled':
+            event['className'] = 'fc-event-cancelled'
+            event['title'] = f'[CANCELADO] {event["title"]}'
+        
+        events.append(event)
+    
+    return jsonify(events)
+
+@app.route('/api/appointments', methods=['POST'])
+def api_create_appointment():
+    """
+    API endpoint para criar uma nova consulta.
+    Suporta criação de consultas recorrentes.
+    """
+    try:
+        data = request.get_json()
+        appointment_date = datetime.fromisoformat(data['date'].replace('Z', '+00:00'))
+        is_recurring = data.get('is_recurring') == 'on'  # Convertendo 'on' para True
+        recurrence_frequency = data.get('recurrence_frequency')
+        recurrence_until = None
+        
+        if data.get('recurrence_until'):
+            recurrence_until = date.fromisoformat(data['recurrence_until'])
+            if recurrence_until <= appointment_date.date():
+                return jsonify({
+                    'success': False,
+                    'message': 'A data final da recorrência deve ser posterior à data inicial.'
+                })
+        
+        existing_appointment = Appointment.query.filter(
+            Appointment.date == appointment_date,
+            Appointment.status == 'scheduled'
+        ).first()
+        
+        if existing_appointment:
+            return jsonify({
+                'success': False,
+                'message': 'Já existe uma consulta agendada para este horário.'
+            })
+        
+        new_appointment = Appointment(
+            patient_id=data['patientId'],
+            date=appointment_date,
+            value=float(data['value']),
+            notes=data.get('notes'),
+            status='scheduled',
+            is_recurring=is_recurring,  # Agora é um booleano
+            recurrence_frequency=recurrence_frequency if is_recurring else None,
+            recurrence_day=appointment_date.weekday() if is_recurring else None,
+            recurrence_until=recurrence_until
+        )
+        db.session.add(new_appointment)
+        db.session.flush()
+        
+        if is_recurring and recurrence_frequency:
+            next_date = appointment_date
+            count = 0
+            max_recurrences = 52
+            
+            while count < max_recurrences:
+                if recurrence_frequency == 'weekly':
+                    next_date = next_date + relativedelta(weeks=1)
+                elif recurrence_frequency == 'biweekly':
+                    next_date = next_date + relativedelta(weeks=2)
+                else:  # monthly
+                    next_date = next_date + relativedelta(months=1)
+                
+                if recurrence_until and next_date.date() > recurrence_until:
+                    break
+                
+                recurring_appointment = Appointment(
+                    patient_id=data['patientId'],
+                    date=next_date,
+                    value=float(data['value']),
+                    notes=data.get('notes'),
+                    status='scheduled',
+                    parent_appointment_id=new_appointment.id
+                )
+                db.session.add(recurring_appointment)
+                count += 1
+        
+        db.session.commit()
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f'Erro ao criar consulta: {str(e)}')
+        return jsonify({
+            'success': False,
+            'message': f'Erro ao criar consulta: {str(e)}'
+        })
+
+@app.route('/api/appointments/<int:id>', methods=['PUT'])
+def api_update_appointment(id):
+    """
+    API endpoint para atualizar uma consulta existente.
+    """
+    try:
+        appointment = Appointment.query.get_or_404(id)
+        data = request.get_json()
+        
+        if 'date' in data:
+            new_date = datetime.fromisoformat(data['date'].replace('Z', '+00:00'))
+            existing_appointment = Appointment.query.filter(
+                Appointment.id != id,
+                Appointment.date == new_date,
+                Appointment.status == 'scheduled'
+            ).first()
+            
+            if existing_appointment:
+                return jsonify({
+                    'success': False,
+                    'message': 'Já existe uma consulta agendada para este horário.'
+                })
+            
+            appointment.date = new_date
+        
+        if 'patientId' in data:
+            appointment.patient_id = data['patientId']
+        if 'value' in data:
+            appointment.value = float(data['value'])
+        if 'notes' in data:
+            appointment.notes = data.get('notes')
+        
+        db.session.commit()
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f'Erro ao atualizar consulta: {str(e)}')
+        return jsonify({
+            'success': False,
+            'message': f'Erro ao atualizar consulta: {str(e)}'
+        })
+
+@app.route('/api/appointments/<int:id>', methods=['DELETE'])
+def api_delete_appointment(id):
+    """
+    API endpoint para excluir uma consulta.
+    """
+    try:
+        appointment = Appointment.query.get_or_404(id)
+        db.session.delete(appointment)
+        db.session.commit()
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f'Erro ao excluir consulta: {str(e)}')
+        return jsonify({
+            'success': False,
+            'message': f'Erro ao excluir consulta: {str(e)}'
+        })
 
 @app.route('/financial/payments')
 def list_payments():
