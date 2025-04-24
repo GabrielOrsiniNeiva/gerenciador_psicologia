@@ -1,5 +1,6 @@
 from datetime import datetime
-from .app import db
+import sqlalchemy as sa
+from .extensions import db
 
 class Patient(db.Model):
     """
@@ -80,16 +81,15 @@ class Payment(db.Model):
         patient_id: ID do paciente que realizou o pagamento
         date: Data e hora do pagamento
         value: Valor do pagamento
-        payment_method: Método de pagamento utilizado
         notes: Observações sobre o pagamento
         created_at: Data de criação do registro
     """
     id = db.Column(db.Integer, primary_key=True)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patient.id'), nullable=False)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patient.id'), nullable=True)
     date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     value = db.Column(db.Numeric(10, 2), nullable=False)
-    payment_method = db.Column(db.String(50), nullable=False)
-    notes = db.Column(db.Text)
+    notes = db.Column(db.Text())
+    type = db.Column(db.String(20), nullable=False, default='income')  # 'income' or 'expense'
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def __repr__(self):

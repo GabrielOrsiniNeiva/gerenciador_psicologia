@@ -2,9 +2,9 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>Pagamentos</h1>
+    <h1>Registros Financeiros</h1>
     <a href="{{ url_for('register_payment') }}" class="btn btn-primary">
-        <i data-feather="plus"></i> Novo Pagamento
+        <i data-feather="plus"></i> Novo Registro
     </a>
 </div>
 
@@ -34,9 +34,9 @@
         <thead>
             <tr>
                 <th>Data</th>
+                <th>Tipo</th>
                 <th>Paciente</th>
                 <th>Valor</th>
-                <th>Método</th>
                 <th>Ações</th>
             </tr>
         </thead>
@@ -44,28 +44,33 @@
             {% for payment in payments %}
             <tr>
                 <td>{{ payment.date.strftime('%d/%m/%Y') }}</td>
-                <td>{{ payment.patient.name }}</td>
+                <td>{{ payment.type }}</td>
+                <td>{{ payment.patient.name if payment.patient else '-' }}</td>
                 <td>R$ {{ "%.2f"|format(payment.value) }}</td>
-                <td>{{ payment.payment_method }}</td>
                 <td>
                     <a href="{{ url_for('view_payment', id=payment.id) }}" class="btn btn-sm btn-outline-secondary">
                         <i data-feather="eye"></i>
                     </a>
+                    <form method="POST" action="{{ url_for('delete_payment', payment_id=payment.id) }}" style="display: inline;">
+                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Tem certeza que deseja excluir este registro?');">
+                            <i data-feather="trash-2"></i>
+                        </button>
+                    </form>
                 </td>
             </tr>
             {% endfor %}
         </tbody>
         <tfoot>
             <tr class="table-info">
-                <td colspan="2"><strong>Total</strong></td>
-                <td colspan="3"><strong>R$ {{ "%.2f"|format(total_value) }}</strong></td>
+                <td colspan="3"><strong>Total</strong></td>
+                <td colspan="2"><strong>R$ {{ "%.2f"|format(total_value) }}</strong></td>
             </tr>
         </tfoot>
     </table>
 </div>
 {% else %}
 <div class="alert alert-info">
-    Nenhum pagamento registrado no período selecionado.
+    Nenhum registro financeiro no período selecionado.
 </div>
 {% endif %}
 {% endblock %}

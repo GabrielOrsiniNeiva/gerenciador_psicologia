@@ -10,16 +10,32 @@
             <div class="card-body">
                 <form method="POST" action="{{ url_for('register_payment') }}" class="needs-validation" novalidate>
                     <div class="mb-3">
+                        <label class="form-label">Tipo de Registro</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="type" id="income" value="income" required checked>
+                            <label class="form-check-label" for="income">
+                                Recebimento
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="type" id="expense" value="expense" required>
+                            <label class="form-check-label" for="expense">
+                                Despesa
+                            </label>
+                        </div>
+                        <div class="invalid-feedback">
+                            Selecione o tipo de registro.
+                        </div>
+                    </div>
+
+                    <div class="mb-3" id="patient_select" >
                         <label for="patient_id" class="form-label">Paciente</label>
-                        <select class="form-select" id="patient_id" name="patient_id" required>
+                        <select class="form-select" id="patient_id" name="patient_id">
                             <option value="">Selecione um paciente</option>
                             {% for patient in patients %}
                             <option value="{{ patient.id }}">{{ patient.name }}</option>
                             {% endfor %}
                         </select>
-                        <div class="invalid-feedback">
-                            Por favor, selecione um paciente.
-                        </div>
                     </div>
 
                     <div class="mb-3">
@@ -33,20 +49,6 @@
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="payment_method" class="form-label">Método de Pagamento</label>
-                        <select class="form-select" id="payment_method" name="payment_method" required>
-                            <option value="">Selecione o método</option>
-                            <option value="cash">Dinheiro</option>
-                            <option value="credit_card">Cartão de Crédito</option>
-                            <option value="debit_card">Cartão de Débito</option>
-                            <option value="pix">PIX</option>
-                            <option value="transfer">Transferência</option>
-                        </select>
-                        <div class="invalid-feedback">
-                            Por favor, selecione o método de pagamento.
-                        </div>
-                    </div>
 
                     <div class="mb-3">
                         <label for="date" class="form-label">Data do Pagamento</label>
@@ -61,12 +63,13 @@
                         <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
                     </div>
 
+
                     <div class="d-flex justify-content-between">
                         <a href="{{ url_for('list_payments') }}" class="btn btn-secondary">
                             <i data-feather="arrow-left"></i> Voltar
                         </a>
-                        <button type="submit" class="btn btn-primary">
-                            <i data-feather="save"></i> Registrar Pagamento
+                    <button type="submit" class="btn btn-primary">
+                            <i data-feather="save"></i> Registrar
                         </button>
                     </div>
                 </form>
@@ -74,4 +77,18 @@
         </div>
     </div>
 </div>
+<script>
+    const paymentTypeRadios = document.querySelectorAll('input[name="type"]');
+    const patientSelect = document.getElementById('patient_select');
+
+    paymentTypeRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.value === 'income') {
+                patientSelect.style.display = 'block';
+            } else {
+                patientSelect.style.display = 'none';
+            }
+        });
+    });
+</script>
 {% endblock %}

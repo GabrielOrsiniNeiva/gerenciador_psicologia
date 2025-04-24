@@ -16,6 +16,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Phone number formatting
     const phoneInput = document.getElementById('phone');
+
+function confirmDelete(paymentId) {
+    return confirm('Tem certeza que deseja excluir este registro?');
+}
     if (phoneInput) {
         phoneInput.addEventListener('input', function(e) {
             let value = e.target.value.replace(/\D/g, '');

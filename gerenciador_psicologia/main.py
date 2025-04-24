@@ -475,7 +475,7 @@ def list_payments():
     start_date = request.args.get('start_date')
     end_date = request.args.get('end_date')
 
-    query = Payment.query.join(Patient)
+    query = Payment.query
 
     if start_date:
         query = query.filter(Payment.date >= datetime.strptime(start_date, '%Y-%m-%d'))
@@ -485,9 +485,9 @@ def list_payments():
     payments = query.order_by(Payment.date.desc()).all()
     total_value = sum(payment.value for payment in payments)
 
-    return render_template('financial/payments_list.html', 
-                         payments=payments,
-                         total_value=total_value)
+    return render_template('financial/payments_list.html',
+                           payments=payments,
+                           total_value=total_value)
 
 @app.route('/financial/payments/new', methods=['GET', 'POST'])
 def register_payment():
@@ -497,22 +497,41 @@ def register_payment():
     """
     if request.method == 'POST':
         try:
+            logging.debug(f"Request form data: {request.form}")
             payment_date = datetime.strptime(request.form['date'], '%Y-%m-%dT%H:%M')
+            payment_type = request.form['type']  # 'income' or 'expense'
+            patient_id = request.form.get('patient_id') if payment_type == 'income' else None
+            try:
+                patient_id = int(patient_id) if patient_id else None
+            except ValueError:
+                patient_id = None
+
+            payment_type = request.form['type']  # 'income' or 'expense'
+            patient_id = request.form.get('patient_id') if payment_type == 'income' else None
+            try:
+                patient_id = int(patient_id) if patient_id else None
+            except ValueError:
+                patient_id = None
+
             new_payment = Payment(
-                patient_id=request.form['patient_id'],
                 date=payment_date,
                 value=float(request.form['value']),
-                payment_method=request.form['payment_method'],
-                notes=request.form['notes']
+                notes=request.form['notes'],
+                type=payment_type
             )
+
+            if patient_id:
+                new_payment.patient_id = patient_id
+
+
             db.session.add(new_payment)
             db.session.commit()
-            flash('Pagamento registrado com sucesso!', 'success')
+            flash('Registro financeiro adicionado com sucesso!', 'success')
             return redirect(url_for('list_payments'))
         except Exception as e:
             db.session.rollback()
-            flash(f'Erro ao registrar pagamento: {str(e)}', 'danger')
-            logging.error(f'Erro ao registrar pagamento: {str(e)}')
+            flash(f'Erro ao registrar registro financeiro: {str(e)}', 'danger')
+            logging.error(f'Erro ao registrar registro financeiro: {str(e)}')
 
     patients = Patient.query.order_by(Patient.name).all()
     return render_template('financial/payment_form.html', patients=patients)

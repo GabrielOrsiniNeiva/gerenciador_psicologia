@@ -1,0 +1,1 @@
+FLASK_APP=gerenciador_psicologia/main.py
