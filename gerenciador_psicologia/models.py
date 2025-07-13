@@ -22,6 +22,7 @@ class Patient(db.Model):
     phone = db.Column(db.String(20), nullable=False)
     birth_date = db.Column(db.Date, nullable=False)
     notes = db.Column(db.Text)
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

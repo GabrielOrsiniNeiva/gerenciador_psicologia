@@ -18,18 +18,30 @@ logging.basicConfig(level=logging.DEBUG)
 @app.route('/')
 def index():
     """
-    Rota principal que lista todos os pacientes.
-    Permite busca por nome ou email.
+    Rota principal que lista pacientes.
+    Por padrão, exibe apenas pacientes ativos.
+    Permite busca e visualização de inativos.
     """
     search = request.args.get('search', '').lower()
+    show_inactive = request.args.get('show_inactive', 'false').lower() == 'true'
+
+    query = Patient.query
+
+    if show_inactive:
+        query = query.filter(Patient.is_active == False)
+        active_filter = 'inactive'
+    else:
+        query = query.filter(Patient.is_active == True)
+        active_filter = 'active'
+
     if search:
-        patients = Patient.query.filter(
+        query = query.filter(
             (Patient.name.ilike(f'%{search}%')) |
             (Patient.email.ilike(f'%{search}%'))
-        ).all()
-    else:
-        patients = Patient.query.all()
-    return render_template('patients/list.html', patients=patients)
+        )
+
+    patients = query.all()
+    return render_template('patients/list.html', patients=patients, active_filter=active_filter)
 
 @app.route('/patient/new', methods=['GET', 'POST'])
 def create_patient():
@@ -87,12 +99,16 @@ def edit_patient(id):
 @app.route('/patient/<int:id>/delete', methods=['POST'])
 def delete_patient(id):
     """
-    Remove um paciente do sistema.
+    Remove um paciente e todas as suas dependências (consultas, pagamentos).
     Args:
         id: ID do paciente a ser removido
     """
     patient = Patient.query.get_or_404(id)
     try:
+        # Exclui todas as consultas e pagamentos associados
+        Appointment.query.filter_by(patient_id=id).delete()
+        Payment.query.filter_by(patient_id=id).delete()
+        
         db.session.delete(patient)
         db.session.commit()
         flash('Paciente removido com sucesso!', 'success')
@@ -101,6 +117,47 @@ def delete_patient(id):
         flash(f'Erro ao remover paciente: {str(e)}', 'danger')
         logging.error(f'Erro ao remover paciente: {str(e)}')
     return redirect(url_for('index'))
+
+@app.route('/patient/<int:id>/deactivate', methods=['POST'])
+def deactivate_patient(id):
+    """
+    Inativa um paciente e exclui todas as suas consultas futuras.
+    Args:
+        id: ID do paciente a ser inativado
+    """
+    patient = Patient.query.get_or_404(id)
+    try:
+        # Exclui todas as consultas associadas ao paciente
+        Appointment.query.filter_by(patient_id=id).delete()
+        
+        # Inativa o paciente
+        patient.is_active = False
+        
+        db.session.commit()
+        flash('Paciente inativado e consultas excluídas com sucesso!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Erro ao inativar paciente: {str(e)}', 'danger')
+        logging.error(f'Erro ao inativar paciente: {str(e)}')
+    return redirect(url_for('index'))
+
+@app.route('/patient/<int:id>/activate', methods=['POST'])
+def activate_patient(id):
+    """
+    Ativa um paciente no sistema.
+    Args:
+        id: ID do paciente a ser ativado
+    """
+    patient = Patient.query.get_or_404(id)
+    try:
+        patient.is_active = True
+        db.session.commit()
+        flash('Paciente ativado com sucesso!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Erro ao ativar paciente: {str(e)}', 'danger')
+        logging.error(f'Erro ao ativar paciente: {str(e)}')
+    return redirect(url_for('index', show_inactive='true'))
 
 @app.route('/appointments')
 def list_appointments():

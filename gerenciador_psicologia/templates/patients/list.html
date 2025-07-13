@@ -10,16 +10,22 @@
 
 <div class="card mb-4">
     <div class="card-body">
-        <form method="GET" action="{{ url_for('index') }}" class="row g-3">
-            <div class="col-md-10">
+        <form method="GET" action="{{ url_for('index') }}" class="mb-3">
+            <div class="input-group">
                 <input type="text" name="search" class="form-control" placeholder="Buscar pacientes..." value="{{ request.args.get('search', '') }}">
-            </div>
-            <div class="col-md-2">
-                <button type="submit" class="btn btn-secondary w-100">
+                <button type="submit" class="btn btn-secondary">
                     <i data-feather="search"></i> Buscar
                 </button>
             </div>
         </form>
+        <div class="btn-group">
+            <a href="{{ url_for('index', show_inactive='false') }}" class="btn btn-sm {% if active_filter == 'active' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                Ativos
+            </a>
+            <a href="{{ url_for('index', show_inactive='true') }}" class="btn btn-sm {% if active_filter == 'inactive' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                Inativos
+            </a>
+        </div>
     </div>
 </div>
 
@@ -44,14 +50,29 @@
                 <td>{{ patient.birth_date }}</td>
                 <td>
                     <div class="btn-group" role="group">
-                        <a href="{{ url_for('edit_patient', id=patient.id) }}" class="btn btn-sm btn-outline-secondary">
+                        <a href="{{ url_for('edit_patient', id=patient.id) }}" class="btn btn-sm btn-outline-secondary" title="Editar">
                             <i data-feather="edit"></i>
                         </a>
+                        {% if patient.is_active %}
+                        <form action="{{ url_for('deactivate_patient', id=patient.id) }}" method="POST" class="d-inline">
+                            <button type="submit" class="btn btn-sm btn-outline-warning" title="Inativar" onclick="return confirm('Tem certeza que deseja inativar este paciente?')">
+                                <i data-feather="user-minus"></i>
+                            </button>
+                        </form>
+                        {% else %}
+                        <form action="{{ url_for('activate_patient', id=patient.id) }}" method="POST" class="d-inline">
+                            <button type="submit" class="btn btn-sm btn-outline-success" title="Ativar" onclick="return confirm('Tem certeza que deseja ativar este paciente?')">
+                                <i data-feather="user-plus"></i>
+                            </button>
+                        </form>
+                        {% endif %}
+                        {% if not patient.is_active %}
                         <form action="{{ url_for('delete_patient', id=patient.id) }}" method="POST" class="d-inline">
-                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Tem certeza que deseja excluir este paciente?')">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Excluir Permanentemente" onclick="return confirm('Atenção! Esta ação é irreversível. Deseja excluir permanentemente este paciente?')">
                                 <i data-feather="trash-2"></i>
                             </button>
                         </form>
+                        {% endif %}
                     </div>
                 </td>
             </tr>
