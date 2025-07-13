@@ -194,8 +194,9 @@ def create_appointment():
             is_recurring = 'is_recurring' in request.form
             recurrence_frequency = request.form.get('recurrence_frequency')
             recurrence_until = None
+            no_end_date = 'no_end_date' in request.form
 
-            if request.form.get('recurrence_until'):
+            if is_recurring and not no_end_date and request.form.get('recurrence_until'):
                 recurrence_until = date.fromisoformat(request.form['recurrence_until'])
 
                 if recurrence_until <= appointment_date.date():
@@ -363,7 +364,7 @@ def get_appointments():
                 'patientId': appointment.patient_id,
                 'value': float(appointment.value),
                 'notes': appointment.notes,
-                'isRecurring': appointment.is_recurring,
+                'isRecurring': appointment.is_recurring or appointment.parent_appointment_id is not None,
                 'recurrenceFrequency': appointment.recurrence_frequency,
                 'recurrenceUntil': appointment.recurrence_until.isoformat() if appointment.recurrence_until else None
             }
@@ -389,8 +390,9 @@ def api_create_appointment():
         is_recurring = data.get('is_recurring') == 'on'  # Convertendo 'on' para True
         recurrence_frequency = data.get('recurrence_frequency')
         recurrence_until = None
+        no_end_date = data.get('no_end_date') == 'on'
         
-        if data.get('recurrence_until'):
+        if is_recurring and not no_end_date and data.get('recurrence_until'):
             recurrence_until = date.fromisoformat(data['recurrence_until'])
             if recurrence_until <= appointment_date.date():
                 return jsonify({
@@ -465,34 +467,73 @@ def api_create_appointment():
 def api_update_appointment(id):
     """
     API endpoint para atualizar uma consulta existente.
+    Aceita o parâmetro 'scope' para 'single' ou 'series'.
     """
+    scope = request.args.get('scope', 'single')
     try:
         appointment = Appointment.query.get_or_404(id)
         data = request.get_json()
-        
-        if 'date' in data:
-            new_date = datetime.fromisoformat(data['date'].replace('Z', '+00:00'))
-            existing_appointment = Appointment.query.filter(
-                Appointment.id != id,
-                Appointment.date == new_date,
-                Appointment.status == 'scheduled'
-            ).first()
+
+        if scope == 'series':
+            parent_appointment = appointment.parent_appointment or appointment
             
-            if existing_appointment:
-                return jsonify({
-                    'success': False,
-                    'message': 'Já existe uma consulta agendada para este horário.'
-                })
+            # Exclui consultas futuras da série antiga
+            Appointment.query.filter(
+                (Appointment.parent_appointment_id == parent_appointment.id) &
+                (Appointment.date > parent_appointment.date)
+            ).delete(synchronize_session=False)
+
+            # Atualiza a consulta pai
+            parent_appointment.date = datetime.fromisoformat(data['date'].replace('Z', '+00:00'))
+            parent_appointment.patient_id = data['patientId']
+            parent_appointment.value = float(data['value'])
+            parent_appointment.notes = data.get('notes')
+            parent_appointment.is_recurring = data.get('is_recurring') == 'on'
+            parent_appointment.recurrence_frequency = data.get('recurrence_frequency') if parent_appointment.is_recurring else None
+            parent_appointment.recurrence_day = parent_appointment.date.weekday() if parent_appointment.is_recurring else None
             
-            appointment.date = new_date
-        
-        if 'patientId' in data:
-            appointment.patient_id = data['patientId']
-        if 'value' in data:
-            appointment.value = float(data['value'])
-        if 'notes' in data:
-            appointment.notes = data.get('notes')
-        
+            recurrence_until = None
+            if parent_appointment.is_recurring and data.get('recurrence_until'):
+                recurrence_until = date.fromisoformat(data['recurrence_until'])
+            parent_appointment.recurrence_until = recurrence_until
+
+            # Recria as consultas recorrentes
+            if parent_appointment.is_recurring:
+                next_date = parent_appointment.date
+                count = 0
+                max_recurrences = 52
+                
+                while count < max_recurrences:
+                    if parent_appointment.recurrence_frequency == 'weekly':
+                        next_date += relativedelta(weeks=1)
+                    elif parent_appointment.recurrence_frequency == 'biweekly':
+                        next_date += relativedelta(weeks=2)
+                    else: # monthly
+                        next_date += relativedelta(months=1)
+                    
+                    if recurrence_until and next_date.date() > recurrence_until:
+                        break
+                        
+                    recurring_appointment = Appointment(
+                        patient_id=parent_appointment.patient_id,
+                        date=next_date,
+                        value=parent_appointment.value,
+                        notes=parent_appointment.notes,
+                        status='scheduled',
+                        parent_appointment_id=parent_appointment.id
+                    )
+                    db.session.add(recurring_appointment)
+                    count += 1
+        else: # scope == 'single'
+            if 'date' in data:
+                appointment.date = datetime.fromisoformat(data['date'].replace('Z', '+00:00'))
+            if 'patientId' in data:
+                appointment.patient_id = data['patientId']
+            if 'value' in data:
+                appointment.value = float(data['value'])
+            if 'notes' in data:
+                appointment.notes = data.get('notes')
+
         db.session.commit()
         return jsonify({'success': True})
         
@@ -508,10 +549,29 @@ def api_update_appointment(id):
 def api_delete_appointment(id):
     """
     API endpoint para excluir uma consulta.
+    Aceita o parâmetro 'scope' para 'single' ou 'series'.
     """
+    scope = request.args.get('scope', 'single')
     try:
         appointment = Appointment.query.get_or_404(id)
-        db.session.delete(appointment)
+        
+        if scope == 'series':
+            # Se for uma consulta filha, encontre a consulta pai
+            parent_appointment = appointment.parent_appointment or appointment
+            
+            # Exclui todas as consultas futuras da série
+            Appointment.query.filter(
+                (Appointment.parent_appointment_id == parent_appointment.id) &
+                (Appointment.date >= appointment.date)
+            ).delete(synchronize_session=False)
+            
+            # Exclui a consulta pai se a data for a mesma
+            if parent_appointment.date >= appointment.date:
+                db.session.delete(parent_appointment)
+
+        else: # scope == 'single'
+            db.session.delete(appointment)
+            
         db.session.commit()
         return jsonify({'success': True})
         

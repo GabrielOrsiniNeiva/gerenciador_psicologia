@@ -69,8 +69,14 @@
                         <div class="mb-3">
                             <label for="recurrence_until" class="form-label">Repetir até</label>
                             <input type="date" class="form-control" id="recurrence_until" name="recurrence_until">
-                            <div class="form-text">
-                                Deixe em branco para repetir indefinidamente
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="no_end_date" name="no_end_date" onchange="toggleEndDate(this.checked)">
+                                <label class="form-check-label" for="no_end_date">
+                                    Sem data final
+                                </label>
                             </div>
                         </div>
                     </div>
@@ -113,6 +119,16 @@
 function toggleRecurringOptions(show) {
     const recurringOptions = document.getElementById('recurring_options');
     recurringOptions.style.display = show ? 'block' : 'none';
+}
+
+function toggleEndDate(checked) {
+    const recurrenceUntil = document.getElementById('recurrence_until');
+    if (checked) {
+        recurrenceUntil.value = '';
+        recurrenceUntil.disabled = true;
+    } else {
+        recurrenceUntil.disabled = false;
+    }
 }
 </script>
 {% endblock %}

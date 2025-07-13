@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const calendarEl = document.getElementById('calendar');
     const appointmentModal = new bootstrap.Modal(document.getElementById('appointmentModal'));
     const deleteConfirmModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+    const recurrenceEditModal = new bootstrap.Modal(document.getElementById('recurrenceEditModal'));
     
     let calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'timeGridWeek',
@@ -12,9 +13,9 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         views: {
             timeGridWorkWeek: {
-                type: 'timeGrid',
-                duration: { days: 5 },
-                buttonText: 'Semana Útil'
+                type: 'timeGridWeek',
+                buttonText: 'Semana Útil',
+                hiddenDays: [0, 6] // Oculta domingo (0) e sábado (6)
             }
         },
         slotMinTime: '07:00:00',
@@ -43,26 +44,24 @@ document.addEventListener('DOMContentLoaded', function() {
             appointmentModal.show();
         },
         eventClick: function(info) {
-            // Populate form with event data
             const event = info.event;
-            document.getElementById('appointmentId').value = event.id;
-            document.getElementById('appointmentDate').value = event.start.toISOString().slice(0, 16);
-            document.getElementById('patientId').value = event.extendedProps.patientId;
-            document.getElementById('value').value = event.extendedProps.value;
-            document.getElementById('notes').value = event.extendedProps.notes;
-            
             if (event.extendedProps.isRecurring) {
-                document.getElementById('is_recurring').checked = true;
-                document.getElementById('recurrence_frequency').value = event.extendedProps.recurrenceFrequency;
-                if (event.extendedProps.recurrenceUntil) {
-                    document.getElementById('recurrence_until').value = event.extendedProps.recurrenceUntil;
-                }
+                document.getElementById('recurrenceEditId').value = event.id;
+                document.getElementById('recurrenceEditAction').value = 'edit';
+                recurrenceEditModal.show();
+            } else {
+                // Populate form with event data
+                document.getElementById('appointmentId').value = event.id;
+                document.getElementById('appointmentDate').value = event.start.toISOString().slice(0, 16);
+                document.getElementById('patientId').value = event.extendedProps.patientId;
+                document.getElementById('value').value = event.extendedProps.value;
+                document.getElementById('notes').value = event.extendedProps.notes;
+                
+                // Show modal for editing
+                document.getElementById('modalTitle').textContent = 'Editar Consulta';
+                document.getElementById('deleteButton').style.display = 'block';
+                appointmentModal.show();
             }
-            
-            // Show modal for editing
-            document.getElementById('modalTitle').textContent = 'Editar Consulta';
-            document.getElementById('deleteButton').style.display = 'block';
-            appointmentModal.show();
         },
         eventDrop: function(info) {
             updateAppointment(info.event);
@@ -117,18 +116,27 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('deleteButton').addEventListener('click', function() {
         const appointmentId = document.getElementById('appointmentId').value;
         if (!appointmentId) return;
-        
-        appointmentModal.hide();
-        document.getElementById('deleteConfirmId').value = appointmentId;
-        deleteConfirmModal.show();
+
+        const event = calendar.getEventById(appointmentId);
+        if (event && event.extendedProps.isRecurring) {
+            appointmentModal.hide();
+            document.getElementById('recurrenceEditId').value = appointmentId;
+            document.getElementById('recurrenceEditAction').value = 'delete';
+            recurrenceEditModal.show();
+        } else {
+            appointmentModal.hide();
+            document.getElementById('deleteConfirmId').value = appointmentId;
+            deleteConfirmModal.show();
+        }
     });
 
     // Handle delete confirmation
     document.getElementById('deleteConfirmForm').addEventListener('submit', function(e) {
         e.preventDefault();
         const appointmentId = document.getElementById('deleteConfirmId').value;
-        
-        fetch(`/api/appointments/${appointmentId}`, {
+        const scope = document.getElementById('deleteConfirmScope').value || 'single';
+
+        fetch(`/api/appointments/${appointmentId}?scope=${scope}`, {
             method: 'DELETE',
         })
         .then(response => response.json())
@@ -145,6 +153,59 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error:', error);
             showAlert('Erro ao excluir consulta', 'danger');
         });
+    });
+
+    // Handle recurrence edit modal buttons
+    document.getElementById('editOccurrenceBtn').addEventListener('click', function() {
+        const appointmentId = document.getElementById('recurrenceEditId').value;
+        const action = document.getElementById('recurrenceEditAction').value;
+        
+        recurrenceEditModal.hide();
+
+        if (action === 'edit') {
+            const event = calendar.getEventById(appointmentId);
+            // Populate form with event data
+            document.getElementById('appointmentId').value = event.id;
+            document.getElementById('appointmentDate').value = event.start.toISOString().slice(0, 16);
+            document.getElementById('patientId').value = event.extendedProps.patientId;
+            document.getElementById('value').value = event.extendedProps.value;
+            document.getElementById('notes').value = event.extendedProps.notes;
+            
+            // Show modal for editing
+            document.getElementById('modalTitle').textContent = 'Editar Consulta';
+            document.getElementById('deleteButton').style.display = 'block';
+            appointmentModal.show();
+        } else if (action === 'delete') {
+            document.getElementById('deleteConfirmId').value = appointmentId;
+            document.getElementById('deleteConfirmScope').value = 'single';
+            deleteConfirmModal.show();
+        }
+    });
+
+    document.getElementById('editSeriesBtn').addEventListener('click', function() {
+        const appointmentId = document.getElementById('recurrenceEditId').value;
+        const action = document.getElementById('recurrenceEditAction').value;
+
+        recurrenceEditModal.hide();
+
+        if (action === 'edit') {
+            const event = calendar.getEventById(appointmentId);
+            // Populate form with event data
+            document.getElementById('appointmentId').value = event.id;
+            document.getElementById('appointmentDate').value = event.start.toISOString().slice(0, 16);
+            document.getElementById('patientId').value = event.extendedProps.patientId;
+            document.getElementById('value').value = event.extendedProps.value;
+            document.getElementById('notes').value = event.extendedProps.notes;
+            
+            // Show modal for editing
+            document.getElementById('modalTitle').textContent = 'Editar Série de Consultas';
+            document.getElementById('deleteButton').style.display = 'block';
+            appointmentModal.show();
+        } else if (action === 'delete') {
+            document.getElementById('deleteConfirmId').value = appointmentId;
+            document.getElementById('deleteConfirmScope').value = 'series';
+            deleteConfirmModal.show();
+        }
     });
 
     // Helper function to update appointment after drag/resize
