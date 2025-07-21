@@ -1,6 +1,7 @@
 from datetime import datetime
 import sqlalchemy as sa
 from .extensions import db
+import enum
 
 class Patient(db.Model):
     """
@@ -23,11 +24,11 @@ class Patient(db.Model):
     birth_date = db.Column(db.Date, nullable=False)
     notes = db.Column(db.Text)
     is_active = db.Column(db.Boolean, default=True, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, server_default=sa.func.now())
+    updated_at = db.Column(db.DateTime, server_default=sa.func.now(), onupdate=sa.func.now())
 
-    appointments = db.relationship('Appointment', backref='patient', lazy=True)
-    payments = db.relationship('Payment', backref='patient', lazy=True)
+    appointments = db.relationship('Appointment', backref='patient', lazy='joined', cascade="all, delete-orphan")
+    payments = db.relationship('Payment', backref='patient', lazy='joined', cascade="all, delete-orphan")
 
     def __repr__(self):
         return f'<Patient {self.name}>'
@@ -52,11 +53,11 @@ class Appointment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patient.id'), nullable=False)
     date = db.Column(db.DateTime, nullable=False)
-    status = db.Column(db.String(20), nullable=False, default='scheduled')
+    status = db.Column(db.Enum('scheduled', 'completed', 'cancelled', name='appointment_status'), nullable=False, default='scheduled')
     value = db.Column(db.Numeric(10, 2), nullable=False)
     notes = db.Column(db.Text)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, server_default=sa.func.now())
+    updated_at = db.Column(db.DateTime, server_default=sa.func.now(), onupdate=sa.func.now())
 
     is_recurring = db.Column(db.Boolean, default=False)
     recurrence_frequency = db.Column(db.String(20))
@@ -87,11 +88,11 @@ class Payment(db.Model):
     """
     id = db.Column(db.Integer, primary_key=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patient.id'), nullable=True)
-    date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    date = db.Column(db.DateTime, nullable=False, server_default=sa.func.now())
     value = db.Column(db.Numeric(10, 2), nullable=False)
     notes = db.Column(db.Text())
     type = db.Column(db.String(20), nullable=False, default='income')  # 'income' or 'expense'
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, server_default=sa.func.now())
 
     def __repr__(self):
         return f'<Payment {self.date} - {self.value}>'

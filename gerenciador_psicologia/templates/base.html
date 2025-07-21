@@ -13,7 +13,7 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            <a class="navbar-brand" href="{{ url_for('index') }}">
+            <a class="navbar-brand" href="{{ url_for('main.index') }}">
                 <i data-feather="heart"></i> Consultório de Psicologia
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -22,17 +22,17 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('index') }}">
+                        <a class="nav-link" href="{{ url_for('main.index') }}">
                             <i data-feather="users"></i> Pacientes
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('list_appointments') }}">
+                        <a class="nav-link" href="{{ url_for('appointments.list_appointments') }}">
                             <i data-feather="calendar"></i> Consultas
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('list_payments') }}">
+                        <a class="nav-link" href="{{ url_for('financial.list_payments') }}">
                             <i data-feather="dollar-sign"></i> Financeiro
                         </a>
                     </li>

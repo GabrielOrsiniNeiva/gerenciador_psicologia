@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', function() {
         eventResize: function(info) {
             updateAppointment(info.event);
         },
-        events: '/api/appointments'
+        events: calendarEl.dataset.apiUrl
     });
 
     calendar.render();
@@ -86,7 +86,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // Corrigir o valor do checkbox is_recurring
         data.is_recurring = formData.has('is_recurring') ? 'on' : 'off';
         
-        const url = appointmentId ? `/api/appointments/${appointmentId}` : '/api/appointments';
+        const baseUrl = calendarEl.dataset.apiUrl;
+        const url = appointmentId ? `${baseUrl}/${appointmentId}` : baseUrl;
         const method = appointmentId ? 'PUT' : 'POST';
         
         fetch(url, {
@@ -135,8 +136,9 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         const appointmentId = document.getElementById('deleteConfirmId').value;
         const scope = document.getElementById('deleteConfirmScope').value || 'single';
+        const baseUrl = calendarEl.dataset.apiUrl;
 
-        fetch(`/api/appointments/${appointmentId}?scope=${scope}`, {
+        fetch(`${baseUrl}/${appointmentId}?scope=${scope}`, {
             method: 'DELETE',
         })
         .then(response => response.json())
@@ -210,7 +212,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Helper function to update appointment after drag/resize
     function updateAppointment(event) {
-        fetch(`/api/appointments/${event.id}`, {
+        const baseUrl = calendarEl.dataset.apiUrl;
+        fetch(`${baseUrl}/${event.id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',

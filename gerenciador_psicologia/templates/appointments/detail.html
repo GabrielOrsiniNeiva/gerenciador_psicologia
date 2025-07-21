@@ -39,15 +39,15 @@
                 </dl>
 
                 <div class="d-flex justify-content-between mt-4">
-                    <a href="{{ url_for('list_appointments') }}" class="btn btn-secondary">
+                    <a href="{{ url_for('appointments.list_appointments') }}" class="btn btn-secondary">
                         <i data-feather="arrow-left"></i> Voltar
                     </a>
                     {% if appointment.status == 'scheduled' %}
                     <div>
-                        <a href="{{ url_for('edit_appointment', id=appointment.id) }}" class="btn btn-primary">
+                        <a href="{{ url_for('appointments.edit_appointment', id=appointment.id) }}" class="btn btn-primary">
                             <i data-feather="edit"></i> Editar
                         </a>
-                        <form action="{{ url_for('cancel_appointment', id=appointment.id) }}" method="POST" class="d-inline">
+                        <form action="{{ url_for('appointments.cancel_appointment', id=appointment.id) }}" method="POST" class="d-inline">
                             <button type="submit" class="btn btn-danger" onclick="return confirm('Tem certeza que deseja cancelar esta consulta?')">
                                 <i data-feather="x"></i> Cancelar
                             </button>

@@ -1,1 +1,1 @@
-FLASK_APP=gerenciador_psicologia/main.py
+FLASK_APP=gerenciador_psicologia.app

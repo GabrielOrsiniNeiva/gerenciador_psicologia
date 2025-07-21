@@ -1,44 +1,47 @@
 import os
+from flask import Flask
 from dotenv import load_dotenv
-from flask import Flask, render_template, request, redirect, url_for, flash
-from flask_migrate import Migrate
-from .models import Payment
 from .extensions import db
+from flask_migrate import Migrate
 
 # Carrega as variáveis de ambiente do arquivo .env
 load_dotenv()
 
-app = Flask(__name__, 
-           template_folder='templates',
-           static_folder='static')
-app.secret_key = os.environ.get("SESSION_SECRET")
+def create_app(test_config=None):
+    """
+    Cria e configura uma instância da aplicação Flask.
+    Utiliza o padrão Application Factory.
+    """
+    app = Flask(__name__, instance_relative_config=True)
 
-# Configure o SQLAlchemy
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
-app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-    "pool_recycle": 300,
-    "pool_pre_ping": True,
-}
+    # Configuração da aplicação
+    app.config.from_mapping(
+        SECRET_KEY=os.environ.get("SESSION_SECRET", "dev_secret_key"),
+        SQLALCHEMY_DATABASE_URI=os.environ.get("DATABASE_URL"),
+        SQLALCHEMY_TRACK_MODIFICATIONS=False,
+    )
 
-migrate = Migrate(app, db)
+    if test_config is None:
+        # Carrega a configuração da instância, se existir, quando não estiver testando
+        app.config.from_pyfile('config.py', silent=True)
+    else:
+        # Carrega a configuração de teste se for passada
+        app.config.from_mapping(test_config)
 
-# Configure o SQLAlchemy
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
-app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-    "pool_recycle": 300,
-    "pool_pre_ping": True,
-}
+    # Inicializa as extensões
+    db.init_app(app)
+    Migrate(app, db)
 
-db.init_app(app)
+    # Importa e registra os Blueprints
+    from .routes import patients, appointments, financial
+    from . import main
 
-with app.app_context():
+    app.register_blueprint(main.bp)
+    app.register_blueprint(patients.bp)
+    app.register_blueprint(appointments.bp)
+    app.register_blueprint(financial.bp)
+
+    # Importa os modelos para que o Flask-Migrate os reconheça
     from . import models
-    db.create_all()
 
-@app.route('/payments/delete/<int:payment_id>', methods=['POST'])
-def delete_payment(payment_id):
-    payment = Payment.query.get_or_404(payment_id)
-    db.session.delete(payment)
-    db.session.commit()
-    flash('Registro financeiro excluído com sucesso!', 'success')
-    return redirect(url_for('list_payments'))
+    return app

@@ -3,14 +3,14 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1>Registros Financeiros</h1>
-    <a href="{{ url_for('register_payment') }}" class="btn btn-primary">
+    <a href="{{ url_for('financial.register_payment') }}" class="btn btn-primary">
         <i data-feather="plus"></i> Novo Registro
     </a>
 </div>
 
 <div class="card mb-4">
     <div class="card-body">
-        <form method="GET" action="{{ url_for('list_payments') }}" class="row g-3">
+        <form method="GET" action="{{ url_for('financial.list_payments') }}" class="row g-3">
             <div class="col-md-4">
                 <label for="start_date" class="form-label">Data Inicial</label>
                 <input type="date" name="start_date" id="start_date" class="form-control" value="{{ request.args.get('start_date', '') }}">
@@ -48,10 +48,10 @@
                 <td>{{ payment.patient.name if payment.patient else '-' }}</td>
                 <td>R$ {{ "%.2f"|format(payment.value) }}</td>
                 <td>
-                    <a href="{{ url_for('view_payment', id=payment.id) }}" class="btn btn-sm btn-outline-secondary">
+                    <a href="{{ url_for('financial.view_payment', id=payment.id) }}" class="btn btn-sm btn-outline-secondary">
                         <i data-feather="eye"></i>
                     </a>
-                    <form method="POST" action="{{ url_for('delete_payment', payment_id=payment.id) }}" style="display: inline;">
+                    <form method="POST" action="{{ url_for('financial.delete_payment', payment_id=payment.id) }}" style="display: inline;">
                         <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Tem certeza que deseja excluir este registro?');">
                             <i data-feather="trash-2"></i>
                         </button>
