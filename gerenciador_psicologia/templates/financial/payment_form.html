@@ -12,13 +12,13 @@
                     <div class="mb-3">
                         <label class="form-label">Tipo de Registro</label>
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" name="type" id="income" value="income" required checked>
+                            <input class="form-check-input" type="radio" name="payment_type" id="income" value="income" required checked>
                             <label class="form-check-label" for="income">
                                 Recebimento
                             </label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" name="type" id="expense" value="expense" required>
+                            <input class="form-check-input" type="radio" name="payment_type" id="expense" value="expense" required>
                             <label class="form-check-label" for="expense">
                                 Despesa
                             </label>
@@ -78,7 +78,7 @@
     </div>
 </div>
 <script>
-    const paymentTypeRadios = document.querySelectorAll('input[name="type"]');
+    const paymentTypeRadios = document.querySelectorAll('input[name="payment_type"]');
     const patientSelect = document.getElementById('patient_select');
 
     paymentTypeRadios.forEach(radio => {

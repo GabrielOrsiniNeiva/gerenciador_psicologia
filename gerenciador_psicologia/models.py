@@ -27,8 +27,8 @@ class Patient(db.Model):
     created_at = db.Column(db.DateTime, server_default=sa.func.now())
     updated_at = db.Column(db.DateTime, server_default=sa.func.now(), onupdate=sa.func.now())
 
-    appointments = db.relationship('Appointment', backref='patient', lazy='joined', cascade="all, delete-orphan")
-    payments = db.relationship('Payment', backref='patient', lazy='joined', cascade="all, delete-orphan")
+    appointments = db.relationship('Appointment', backref='patient', lazy='dynamic', cascade="all, delete-orphan")
+    payments = db.relationship('Payment', backref='patient', lazy='dynamic', cascade="all, delete-orphan")
 
     def __repr__(self):
         return f'<Patient {self.name}>'
@@ -51,8 +51,8 @@ class Appointment(db.Model):
         parent_appointment_id: ID da consulta pai (para séries recorrentes)
     """
     id = db.Column(db.Integer, primary_key=True)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patient.id'), nullable=False)
-    date = db.Column(db.DateTime, nullable=False)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patient.id'), nullable=False, index=True)
+    date = db.Column(db.DateTime, nullable=False, index=True)
     status = db.Column(db.Enum('scheduled', 'completed', 'cancelled', name='appointment_status'), nullable=False, default='scheduled')
     value = db.Column(db.Numeric(10, 2), nullable=False)
     notes = db.Column(db.Text)
@@ -87,11 +87,11 @@ class Payment(db.Model):
         created_at: Data de criação do registro
     """
     id = db.Column(db.Integer, primary_key=True)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patient.id'), nullable=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patient.id'), nullable=True, index=True)
     date = db.Column(db.DateTime, nullable=False, server_default=sa.func.now())
     value = db.Column(db.Numeric(10, 2), nullable=False)
     notes = db.Column(db.Text())
-    type = db.Column(db.String(20), nullable=False, default='income')  # 'income' or 'expense'
+    payment_type = db.Column(db.String(20), nullable=False, default='income')  # 'income' or 'expense'
     created_at = db.Column(db.DateTime, server_default=sa.func.now())
 
     def __repr__(self):
