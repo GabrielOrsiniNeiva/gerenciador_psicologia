@@ -17,13 +17,19 @@ def get_total_value(payments):
     """
     Calculates the total value of a list of payments.
     """
-    return sum(payment.value for payment in payments)
+    total = 0
+    for payment in payments:
+        if payment.payment_type == 'income':
+            total += payment.value
+        else:
+            total -= payment.value
+    return total
 
 def register_payment(payment_data):
     """
     Registers a new payment.
     """
-    payment_date = datetime.strptime(payment_data['date'], '%Y-%m-%dT%H:%M')
+    payment_date = datetime.strptime(payment_data['date'], '%Y-%m-%d').date()
     payment_type = payment_data['payment_type']
     patient_id = payment_data.get('patient_id') if payment_type == 'income' else None
     try:

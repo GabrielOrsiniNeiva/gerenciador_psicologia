@@ -13,13 +13,10 @@
                     <dd class="col-sm-9">{{ payment.patient.name }}</dd>
 
                     <dt class="col-sm-3">Data</dt>
-                    <dd class="col-sm-9">{{ payment.date.strftime('%d/%m/%Y %H:%M') }}</dd>
+                    <dd class="col-sm-9">{{ payment.date.strftime('%d/%m/%Y') }}</dd>
 
                     <dt class="col-sm-3">Valor</dt>
                     <dd class="col-sm-9">R$ {{ "%.2f"|format(payment.value) }}</dd>
-
-                    <dt class="col-sm-3">Método</dt>
-                    <dd class="col-sm-9">{{ payment.payment_method }}</dd>
 
                     {% if payment.notes %}
                     <dt class="col-sm-3">Observações</dt>

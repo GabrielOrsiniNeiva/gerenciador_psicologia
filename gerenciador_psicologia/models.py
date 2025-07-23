@@ -88,7 +88,7 @@ class Payment(db.Model):
     """
     id = db.Column(db.Integer, primary_key=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patient.id'), nullable=True, index=True)
-    date = db.Column(db.DateTime, nullable=False, server_default=sa.func.now())
+    date = db.Column(db.Date, nullable=False, server_default=sa.func.current_date())
     value = db.Column(db.Numeric(10, 2), nullable=False)
     notes = db.Column(db.Text())
     payment_type = db.Column(db.String(20), nullable=False, default='income')  # 'income' or 'expense'
