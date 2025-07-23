@@ -1,32 +1,32 @@
 {% extends "base.html" %}
 
-{% block head %}
+{% block page_title %}Agenda{% endblock %}
+{% block page_title_main %}Agenda de Consultas{% endblock %}
+
+{% block extrastyle %}
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales-all.min.js"></script>
-<script src="{{ url_for('static', filename='js/calendar.js') }}"></script>
-{% endblock %}
+{% endblock extrastyle %}
 
 {% block content %}
-<div class="container-fluid py-4">
-    <h1 class="mb-4">Agenda de Consultas</h1>
-    
-    <div id="alertContainer" class="position-fixed top-0 end-0 p-3" style="z-index: 1050"></div>
-    
-    <div class="row">
-        <div class="col-12">
-            <div id="calendar" data-api-url="{{ url_for('appointments.get_appointments_api') }}"></div>
+<div class="row">
+    <div class="col-12">
+        <div class="card mb-4">
+            <div class="card-body p-3">
+                <div id="calendar" data-api-url="{{ url_for('appointments.get_appointments_api') }}"></div>
+            </div>
         </div>
     </div>
 </div>
 
 <!-- Modal de Consulta -->
-<div class="modal fade" id="appointmentModal" tabindex="-1">
-    <div class="modal-dialog">
+<div class="modal fade" id="appointmentModal" tabindex="-1" role="dialog" aria-labelledby="modalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="modalTitle">Nova Consulta</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
             <form id="appointmentForm">
                 <div class="modal-body">
@@ -39,7 +39,7 @@
                     
                     <div class="mb-3">
                         <label for="patientId" class="form-label">Paciente</label>
-                        <select class="form-select" id="patientId" name="patientId" required>
+                        <select class="form-control" id="patientId" name="patientId" required>
                             <option value="">Selecione um paciente</option>
                             {% for patient in patients %}
                             <option value="{{ patient.id }}">{{ patient.name }}</option>
@@ -52,19 +52,15 @@
                         <input type="number" class="form-control" id="value" name="value" step="0.01" required>
                     </div>
                     
-                    <div class="mb-3">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="is_recurring" name="is_recurring">
-                            <label class="form-check-label" for="is_recurring">
-                                Consulta Recorrente
-                            </label>
-                        </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="is_recurring" name="is_recurring">
+                        <label class="form-check-label" for="is_recurring">Consulta Recorrente</label>
                     </div>
                     
                     <div id="recurrenceOptions" class="mb-3 d-none">
                         <div class="mb-3">
                             <label for="recurrence_frequency" class="form-label">Frequência</label>
-                            <select class="form-select" id="recurrence_frequency" name="recurrence_frequency">
+                            <select class="form-control" id="recurrence_frequency" name="recurrence_frequency">
                                 <option value="weekly">Semanal</option>
                                 <option value="biweekly">Quinzenal</option>
                                 <option value="monthly">Mensal</option>
@@ -76,13 +72,9 @@
                             <input type="date" class="form-control" id="recurrence_until" name="recurrence_until">
                         </div>
 
-                        <div class="mb-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="no_end_date_modal" name="no_end_date">
-                                <label class="form-check-label" for="no_end_date_modal">
-                                    Sem data final
-                                </label>
-                            </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="no_end_date_modal" name="no_end_date">
+                            <label class="form-check-label" for="no_end_date_modal">Sem data final</label>
                         </div>
                     </div>
                     
@@ -145,6 +137,12 @@
     </div>
 </div>
 
+{% endblock content %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales-all.min.js"></script>
+<script src="{{ url_for('static', filename='js/calendar.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const isRecurringCheckbox = document.getElementById('is_recurring');
@@ -179,4 +177,4 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
-{% endblock %}
+{% endblock extra_js %}
