@@ -53,7 +53,7 @@ class Appointment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patient.id'), nullable=False, index=True)
     date = db.Column(db.DateTime, nullable=False, index=True)
-    status = db.Column(db.Enum('scheduled', 'completed', 'cancelled', name='appointment_status'), nullable=False, default='scheduled')
+    status = db.Column(db.Enum('Agendada', 'Realizada', 'Paga', name='appointment_status_v2'), nullable=False, default='Agendada')
     value = db.Column(db.Numeric(10, 2), nullable=False)
     notes = db.Column(db.Text)
     created_at = db.Column(db.DateTime, server_default=sa.func.now())
@@ -88,6 +88,7 @@ class Payment(db.Model):
     """
     id = db.Column(db.Integer, primary_key=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patient.id'), nullable=True, index=True)
+    appointment_id = db.Column(db.Integer, db.ForeignKey('appointment.id'), nullable=True, index=True)
     date = db.Column(db.Date, nullable=False, server_default=sa.func.current_date())
     value = db.Column(db.Numeric(10, 2), nullable=False)
     notes = db.Column(db.Text())

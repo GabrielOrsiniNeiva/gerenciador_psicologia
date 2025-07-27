@@ -44,24 +44,7 @@ document.addEventListener('DOMContentLoaded', function() {
             appointmentModal.show();
         },
         eventClick: function(info) {
-            const event = info.event;
-            if (event.extendedProps.isRecurring) {
-                document.getElementById('recurrenceEditId').value = event.id;
-                document.getElementById('recurrenceEditAction').value = 'edit';
-                recurrenceEditModal.show();
-            } else {
-                // Populate form with event data
-                document.getElementById('appointmentId').value = event.id;
-                document.getElementById('appointmentDate').value = event.start.toISOString().slice(0, 16);
-                document.getElementById('patientId').value = event.extendedProps.patientId;
-                document.getElementById('value').value = event.extendedProps.value;
-                document.getElementById('notes').value = event.extendedProps.notes;
-                
-                // Show modal for editing
-                document.getElementById('modalTitle').textContent = 'Editar Consulta';
-                document.getElementById('deleteButton').style.display = 'block';
-                appointmentModal.show();
-            }
+            window.location.href = `/appointments/${info.event.id}/edit`;
         },
         eventDrop: function(info) {
             updateAppointment(info.event);

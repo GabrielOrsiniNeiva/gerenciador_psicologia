@@ -85,11 +85,16 @@
                     {% if appointment %}
                     <div class="mb-3">
                         <label for="status" class="form-label">Status</label>
-                        <select class="form-select" id="status" name="status" required>
-                            <option value="scheduled" {{ 'selected' if appointment.status == 'scheduled' else '' }}>Agendada</option>
-                            <option value="completed" {{ 'selected' if appointment.status == 'completed' else '' }}>Realizada</option>
-                            <option value="cancelled" {{ 'selected' if appointment.status == 'cancelled' else '' }}>Cancelada</option>
+                        <select class="form-select" id="status" name="status" required onchange="togglePaymentDate(this.value)">
+                            <option value="Agendada" {{ 'selected' if appointment.status == 'Agendada' else '' }}>Agendada</option>
+                            <option value="Realizada" {{ 'selected' if appointment.status == 'Realizada' else '' }}>Realizada</option>
+                            <option value="Paga" {{ 'selected' if appointment.status == 'Paga' else '' }}>Paga</option>
                         </select>
+                    </div>
+
+                    <div id="payment_date_wrapper" class="mb-3" style="display: none;">
+                        <label for="payment_date" class="form-label">Data do Pagamento</label>
+                        <input type="date" class="form-control" id="payment_date" name="payment_date">
                     </div>
                     {% endif %}
 

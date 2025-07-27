@@ -1,5 +1,5 @@
 from ..app import db
-from ..models import Appointment
+from ..models import Appointment, Payment
 from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
 
@@ -94,10 +94,38 @@ def update_appointment(appointment, appointment_data):
     Updates an existing appointment.
     """
     if appointment.status != 'cancelled':
+        old_status = appointment.status
+        new_status = appointment_data['status']
+
         appointment.date = datetime.strptime(appointment_data['date'], '%Y-%m-%dT%H:%M')
         appointment.value = float(appointment_data['value'])
-        appointment.status = appointment_data['status']
+        appointment.status = new_status
         appointment.notes = appointment_data['notes']
+
+        if new_status == 'Paga':
+            payment_date_str = appointment_data.get('payment_date')
+            if not payment_date_str:
+                raise ValueError("A data de pagamento é obrigatória para consultas pagas.")
+            
+            payment_date = datetime.strptime(payment_date_str, '%Y-%m-%d').date()
+
+            # Check if a payment already exists for this appointment
+            existing_payment = Payment.query.filter_by(appointment_id=appointment.id).first()
+            if not existing_payment:
+                new_payment = Payment(
+                    patient_id=appointment.patient_id,
+                    appointment_id=appointment.id,
+                    date=payment_date,
+                    value=appointment.value,
+                    notes=f"Pagamento referente à consulta de {appointment.date.strftime('%d/%m/%Y')}"
+                )
+                db.session.add(new_payment)
+        
+        elif old_status == 'Paga' and new_status != 'Paga':
+            existing_payment = Payment.query.filter_by(appointment_id=appointment.id).first()
+            if existing_payment:
+                db.session.delete(existing_payment)
+
         db.session.commit()
     else:
         raise ValueError('Não é possível editar uma consulta cancelada.')
@@ -149,7 +177,13 @@ def get_appointments_for_calendar(start, end):
             }
         }
         
-        if appointment.status == 'cancelled':
+        if appointment.status == 'Agendada':
+            event['className'] = 'fc-event-scheduled'
+        elif appointment.status == 'Realizada':
+            event['className'] = 'fc-event-completed'
+        elif appointment.status == 'Paga':
+            event['className'] = 'fc-event-paid'
+        elif appointment.status == 'cancelled':
             event['className'] = 'fc-event-cancelled'
             event['title'] = f'[CANCELADO] {event["title"]}'
         

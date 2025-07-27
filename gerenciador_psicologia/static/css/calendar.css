@@ -39,6 +39,18 @@
     filter: brightness(90%);
 }
 
+.fc-event.fc-event-scheduled {
+    background-color: #0d6efd !important; /* Blue */
+}
+
+.fc-event.fc-event-completed {
+    background-color: #fd7e14 !important; /* Orange */
+}
+
+.fc-event.fc-event-paid {
+    background-color: #198754 !important; /* Green */
+}
+
 .fc-event-cancelled {
     background-color: #dc3545 !important;
     text-decoration: line-through;

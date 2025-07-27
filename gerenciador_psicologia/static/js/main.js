@@ -37,4 +37,27 @@ function confirmDelete(paymentId) {
             e.target.value = value;
         });
     }
+
+    // Toggle payment date field on appointment form
+    const statusSelect = document.getElementById('status');
+    if (statusSelect) {
+        togglePaymentDate(statusSelect.value);
+        statusSelect.addEventListener('change', (event) => {
+            togglePaymentDate(event.target.value);
+        });
+    }
 });
+
+function togglePaymentDate(status) {
+    const paymentDateWrapper = document.getElementById('payment_date_wrapper');
+    const paymentDateInput = document.getElementById('payment_date');
+    if (paymentDateWrapper) {
+        if (status === 'Paga') {
+            paymentDateWrapper.style.display = 'block';
+            paymentDateInput.required = true;
+        } else {
+            paymentDateWrapper.style.display = 'none';
+            paymentDateInput.required = false;
+        }
+    }
+}
