@@ -53,6 +53,7 @@ O servidor iniciará em http://localhost:5000
 - `extensions.py`: Inicialização de extensões do Flask (ex: SQLAlchemy)
 - `main.py`: Blueprint principal (contém a rota de entrada `/`)
 - `routes/`: Módulo contendo os Blueprints da aplicação
+  - `dashboard.py`: Rota para a página de dashboard
   - `patients.py`: Rotas para o gerenciamento de pacientes
   - `appointments.py`: Rotas para o gerenciamento de consultas
   - `financial.py`: Rotas para o gerenciamento financeiro
@@ -90,6 +91,10 @@ O servidor iniciará em http://localhost:5000
 - Relatório financeiro
 - Controle de valores recebidos
 - Histórico de transações
+
+### Dashboard
+- Visualização de indicadores chave (KPIs) como total de pagamentos, despesas, lucro e número de pacientes ativos.
+- Gráfico com a visão geral financeira mensal, comparando receitas e despesas.
 
 ## Guia de Desenvolvimento
 

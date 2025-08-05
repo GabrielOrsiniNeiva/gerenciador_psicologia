@@ -67,3 +67,9 @@ def get_all_patients():
     Retrieves all patients.
     """
     return Patient.query.order_by(Patient.name).all()
+
+def get_active_patients_count():
+    """
+    Counts the number of active patients.
+    """
+    return Patient.query.filter_by(is_active=True).count()

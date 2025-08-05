@@ -33,13 +33,14 @@ def create_app(test_config=None):
     Migrate(app, db)
 
     # Importa e registra os Blueprints
-    from .routes import patients, appointments, financial
+    from .routes import patients, appointments, financial, dashboard
     from . import main
 
     app.register_blueprint(main.bp)
     app.register_blueprint(patients.bp)
     app.register_blueprint(appointments.bp)
     app.register_blueprint(financial.bp)
+    app.register_blueprint(dashboard.dashboard_bp)
 
     # Importa os modelos para que o Flask-Migrate os reconheça
     from . import models
