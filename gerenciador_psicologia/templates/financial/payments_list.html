@@ -20,7 +20,7 @@
                 <input type="date" name="end_date" id="end_date" class="form-control" value="{{ request.args.get('end_date', '') }}">
             </div>
             <div class="col-md-4 d-flex align-items-end">
-                <button type="submit" class="btn btn-secondary w-100">
+                <button type="submit" class="btn btn-primary w-100">
                     <i data-feather="search"></i> Filtrar
                 </button>
             </div>
@@ -47,12 +47,12 @@
                 <td>{{ payment.type }}</td>
                 <td>{{ payment.patient.name if payment.patient else '-' }}</td>
                 <td>R$ {{ "%.2f"|format(payment.value) }}</td>
-                <td>
-                    <a href="{{ url_for('financial.view_payment', id=payment.id) }}" class="btn btn-sm btn-outline-secondary">
+                <td class="action-icons">
+                    <a href="{{ url_for('financial.view_payment', id=payment.id) }}" data-bs-toggle="tooltip" title="Visualizar">
                         <i data-feather="eye"></i>
                     </a>
                     <form method="POST" action="{{ url_for('financial.delete_payment', payment_id=payment.id) }}" style="display: inline;">
-                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Tem certeza que deseja excluir este registro?');">
+                        <button type="submit" class="btn btn-link text-danger p-0 m-0" data-bs-toggle="tooltip" title="Excluir" onclick="return confirm('Tem certeza que deseja excluir este registro?');">
                             <i data-feather="trash-2"></i>
                         </button>
                     </form>

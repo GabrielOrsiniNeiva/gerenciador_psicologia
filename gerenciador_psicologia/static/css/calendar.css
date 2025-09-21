@@ -11,19 +11,19 @@
 }
 
 .fc .fc-button {
-    background-color: #0d6efd;
-    border-color: #0d6efd;
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
 }
 
 .fc .fc-button:hover {
-    background-color: #0b5ed7;
-    border-color: #0a58ca;
+    filter: brightness(90%);
 }
 
 .fc .fc-button-primary:not(:disabled).fc-button-active,
 .fc .fc-button-primary:not(:disabled):active {
-    background-color: #0a58ca;
-    border-color: #0a53be;
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    filter: brightness(80%);
 }
 
 .fc-event {
@@ -40,15 +40,17 @@
 }
 
 .fc-event.fc-event-scheduled {
-    background-color: #0d6efd !important; /* Blue */
+    background-color: var(--primary-color) !important;
 }
 
 .fc-event.fc-event-completed {
-    background-color: #fd7e14 !important; /* Orange */
+    background-color: rgba(251, 99, 64, 0.8) !important;
+    border-color: rgba(251, 99, 64, 1) !important;
 }
 
 .fc-event.fc-event-paid {
-    background-color: #198754 !important; /* Green */
+    background-color: rgba(28, 200, 138, 0.8) !important;
+    border-color: rgba(28, 200, 138, 1) !important;
 }
 
 .fc-event-cancelled {
@@ -79,12 +81,12 @@
 
 .fc th {
     padding: 10px;
-    background-color: #f8f9fa;
-    border: 1px solid #dee2e6 !important;
+    background-color: var(--light-gray);
+    border: 1px solid var(--border-color) !important;
 }
 
 .fc td {
-    border: 1px solid #dee2e6 !important;
+    border: 1px solid var(--border-color) !important;
 }
 
 @media (max-width: 768px) {

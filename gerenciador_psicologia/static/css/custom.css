@@ -1,71 +1,57 @@
-/* Custom styles to complement Bootstrap */
-:root {
-    --medical-blue: #2c3e50;
-    --medical-light: #ecf0f1;
-}
+/* =================================================
+   Estilos para um Dashboard Mais Suave (v2)
+   ================================================= */
 
-body {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-}
-
-main {
-    flex: 1;
-}
-
-/* Card styling */
+/* Estilo geral para todos os cards */
 .card {
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: none;
+  border-radius: 1rem; 
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }
 
-.card-header {
-    background-color: var(--bs-dark);
-    border-bottom: 1px solid var(--bs-border-color);
+/*
+ * Estilização dos cards de métricas com seletor de ID para alta especificidade.
+ */
+#dashboard-cards .col-xl-3:nth-child(1) .card {
+  background-color: #4e73df; /* Azul Suave */
 }
 
-/* Table improvements */
-.table th {
-    background-color: var(--bs-dark);
-    border-bottom: 2px solid var(--bs-border-color);
+#dashboard-cards .col-xl-3:nth-child(2) .card {
+  background-color: #ff595e; /* Vermelho Suave */
 }
 
-/* Button spacing for icon groups */
-.btn-group .btn {
-    margin-right: 2px;
+#dashboard-cards .col-xl-3:nth-child(3) .card {
+  background-color: #1cc88a; /* Verde Suave */
 }
 
-/* Form styling */
-.form-control:focus {
-    border-color: var(--bs-primary);
-    box-shadow: 0 0 0 0.2rem rgba(44, 62, 80, 0.25);
+#dashboard-cards .col-xl-3:nth-child(4) .card {
+  background-color: #36b9cc; /* Azul-piscina Suave */
 }
 
-/* Navbar customization */
-.navbar {
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+/*
+ * Altera a cor do texto e dos ícones para branco
+ * nos cards coloridos para garantir a legibilidade.
+ */
+#dashboard-cards .col-xl-3 .card,
+#dashboard-cards .col-xl-3 .card .numbers p,
+#dashboard-cards .col-xl-3 .card .numbers h5,
+#dashboard-cards .col-xl-3 .card .numbers span,
+#dashboard-cards .col-xl-3 .card .icon i {
+  color: #fff !important; /* Adicionado !important para garantir a sobreposição */
 }
 
-.navbar-brand i {
-    margin-right: 8px;
+/* Ajusta a opacidade do ícone para que ele fique visível */
+#dashboard-cards .col-xl-3 .card .icon i {
+    opacity: 1;
 }
 
-/* Footer styling */
-.footer {
-    background-color: var(--bs-dark) !important;
-    padding: 1rem 0;
-    margin-top: auto;
+/* Garante que o texto secundário (span) não fique muito forte */
+#dashboard-cards .col-xl-3 .card .numbers span {
+    opacity: 0.8;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .btn-group {
-        display: flex;
-        flex-direction: row;
-    }
-    
-    .table-responsive {
-        margin-bottom: 1rem;
-    }
+/* Remove o fundo e a sombra do contêiner do ícone nos cards coloridos */
+#dashboard-cards .col-xl-3 .card .icon {
+  background: transparent !important;
+  box-shadow: none !important;
 }

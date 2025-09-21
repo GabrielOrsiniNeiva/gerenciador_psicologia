@@ -64,25 +64,25 @@
                                 <td class="align-middle text-center">
                                     <span class="text-secondary text-xs font-weight-bold">{{ patient.birth_date }}</span>
                                 </td>
-                                <td class="align-middle">
-                                    <a href="{{ url_for('patients.edit_patient', id=patient.id) }}" class="text-secondary font-weight-bold text-xs" data-toggle="tooltip" data-original-title="Editar paciente">
-                                        <i class="fas fa-edit"></i> Editar
+                                <td class="align-middle action-icons">
+                                    <a href="{{ url_for('patients.edit_patient', id=patient.id) }}" data-bs-toggle="tooltip" title="Editar Paciente">
+                                        <i class="fas fa-edit"></i>
                                     </a>
                                     {% if patient.is_active %}
-                                    <form action="{{ url_for('patients.deactivate_patient', id=patient.id) }}" method="POST" class="d-inline ms-3">
-                                        <button type="submit" class="btn btn-link text-secondary p-0 m-0" onclick="return confirm('Tem certeza que deseja inativar este paciente?')">
-                                            <i class="fas fa-user-minus"></i> Inativar
+                                    <form action="{{ url_for('patients.deactivate_patient', id=patient.id) }}" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-link p-0 m-0" data-bs-toggle="tooltip" title="Inativar Paciente" onclick="return confirm('Tem certeza que deseja inativar este paciente?')">
+                                            <i class="fas fa-user-minus"></i>
                                         </button>
                                     </form>
                                     {% else %}
-                                    <form action="{{ url_for('patients.activate_patient', id=patient.id) }}" method="POST" class="d-inline ms-3">
-                                        <button type="submit" class="btn btn-link text-success p-0 m-0" onclick="return confirm('Tem certeza que deseja ativar este paciente?')">
-                                            <i class="fas fa-user-plus"></i> Ativar
+                                    <form action="{{ url_for('patients.activate_patient', id=patient.id) }}" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-link text-success p-0 m-0" data-bs-toggle="tooltip" title="Ativar Paciente" onclick="return confirm('Tem certeza que deseja ativar este paciente?')">
+                                            <i class="fas fa-user-plus"></i>
                                         </button>
                                     </form>
-                                    <form action="{{ url_for('patients.delete_patient', id=patient.id) }}" method="POST" class="d-inline ms-3">
-                                        <button type="submit" class="btn btn-link text-danger p-0 m-0" onclick="return confirm('Atenção! Esta ação é irreversível. Deseja excluir permanentemente este paciente?')">
-                                            <i class="fas fa-trash-2"></i> Excluir
+                                    <form action="{{ url_for('patients.delete_patient', id=patient.id) }}" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-link text-danger p-0 m-0" data-bs-toggle="tooltip" title="Excluir Paciente" onclick="return confirm('Atenção! Esta ação é irreversível. Deseja excluir permanentemente este paciente?')">
+                                            <i class="fas fa-trash-alt"></i>
                                         </button>
                                     </form>
                                     {% endif %}

@@ -16,10 +16,10 @@
         </div>
     </div>
 
-    <div class="row">
+    <div class="row" id="dashboard-cards">
         <!-- Card Faturamento -->
         <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
-            <div class="card">
+            <div class="card h-100">
                 <div class="card-body p-3">
                     <div class="row">
                         <div class="col-8">
@@ -32,7 +32,7 @@
                             </div>
                         </div>
                         <div class="col-4 text-end">
-                            <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
+                            <div class="icon icon-shape icon-dashboard shadow text-center border-radius-md">
                                 <i class="ni ni-money-coins text-lg opacity-10" aria-hidden="true"></i>
                             </div>
                         </div>
@@ -42,7 +42,7 @@
         </div>
         <!-- Card Despesas -->
         <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
-            <div class="card">
+            <div class="card h-100">
                 <div class="card-body p-3">
                     <div class="row">
                         <div class="col-8">
@@ -55,7 +55,7 @@
                             </div>
                         </div>
                         <div class="col-4 text-end">
-                            <div class="icon icon-shape bg-gradient-danger shadow text-center border-radius-md">
+                            <div class="icon icon-shape icon-dashboard shadow text-center border-radius-md">
                                 <i class="ni ni-cart text-lg opacity-10" aria-hidden="true"></i>
                             </div>
                         </div>
@@ -65,7 +65,7 @@
         </div>
         <!-- Card Lucro -->
         <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
-            <div class="card">
+            <div class="card h-100">
                 <div class="card-body p-3">
                     <div class="row">
                         <div class="col-8">
@@ -78,7 +78,7 @@
                             </div>
                         </div>
                         <div class="col-4 text-end">
-                            <div class="icon icon-shape bg-gradient-success shadow text-center border-radius-md">
+                            <div class="icon icon-shape icon-dashboard shadow text-center border-radius-md">
                                 <i class="ni ni-paper-diploma text-lg opacity-10" aria-hidden="true"></i>
                             </div>
                         </div>
@@ -87,8 +87,8 @@
             </div>
         </div>
         <!-- Card Pacientes Ativos -->
-        <div class="col-xl-3 col-sm-6">
-            <div class="card">
+        <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+            <div class="card h-100">
                 <div class="card-body p-3">
                     <div class="row">
                         <div class="col-8">
@@ -97,10 +97,11 @@
                                 <h5 class="font-weight-bolder mb-0">
                                     {{ active_patients }}
                                 </h5>
+                                <span class="text-sm text-secondary">&nbsp;</span>
                             </div>
                         </div>
                         <div class="col-4 text-end">
-                            <div class="icon icon-shape bg-gradient-warning shadow text-center border-radius-md">
+                            <div class="icon icon-shape icon-dashboard shadow text-center border-radius-md">
                                 <i class="ni ni-circle-08 text-lg opacity-10" aria-hidden="true"></i>
                             </div>
                         </div>
@@ -108,7 +109,6 @@
                 </div>
             </div>
         </div>
-    </div>
 
     <!-- Gráfico Financeiro -->
     <div class="row mt-4">
@@ -144,43 +144,66 @@
 {% if chart_data and chart_data.labels %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+    // Função utilitária para criar padrão listrado diagonal
+    function createStripePattern(ctx, color, bgColor) {
+        var patternCanvas = document.createElement('canvas');
+        patternCanvas.width = 10;
+        patternCanvas.height = 10;
+        var pctx = patternCanvas.getContext('2d');
+        // Fundo transparente
+        pctx.fillStyle = bgColor || 'rgba(0,0,0,0)';
+        pctx.fillRect(0, 0, 10, 10);
+        // Listras diagonais
+        pctx.strokeStyle = color;
+        pctx.lineWidth = 2;
+        pctx.beginPath();
+        pctx.moveTo(0, 10);
+        pctx.lineTo(10, 0);
+        pctx.stroke();
+        return ctx.createPattern(patternCanvas, 'repeat');
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         var ctx = document.getElementById('financial-chart').getContext('2d');
         if (ctx) {
+            // Padrões listrados para "Realizadas" e "Agendadas"
+            var patternRealizadas = createStripePattern(ctx, 'rgba(78, 115, 223, 0.7)');
+            var patternAgendadas = createStripePattern(ctx, 'rgba(78, 115, 223, 0.3)');
+
             var chart = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: {{ chart_data.labels|tojson|safe }},
                     datasets: [
                         {
-                            label: 'Pagamentos',
+                            label: 'Faturamento',
                             data: {{ chart_data.income_data|tojson|safe }},
-                            backgroundColor: 'rgba(28, 200, 138, 0.5)',
-                            borderColor: 'rgba(28, 200, 138, 1)',
+                            backgroundColor: 'rgba(78, 115, 223, 0.5)',  /* Azul do Card */
+                            borderColor: 'rgba(78, 115, 223, 1)',
                             borderWidth: 1,
                             stack: 'income'
                         },
                         {
-                            label: 'Esperado (Realizadas)',
+                            label: 'Realizadas',
                             data: {{ chart_data.expected_revenue_realizada_data|tojson|safe }},
-                            backgroundColor: 'rgba(251, 99, 64, 0.5)',
-                            borderColor: 'rgba(251, 99, 64, 1)',
-                            borderWidth: 1,
+                            backgroundColor: patternRealizadas,
+                            borderColor: 'rgba(78, 115, 223, 1)',
+                            borderWidth: 2,
                             stack: 'income'
                         },
                         {
-                            label: 'Esperado (Agendadas)',
+                            label: 'Agendadas',
                             data: {{ chart_data.expected_revenue_agendada_data|tojson|safe }},
-                            backgroundColor: 'rgba(54, 162, 235, 0.5)',
-                            borderColor: 'rgba(54, 162, 235, 1)',
-                            borderWidth: 1,
+                            backgroundColor: patternAgendadas,
+                            borderColor: 'rgba(78, 115, 223, 1)',
+                            borderWidth: 2,
                             stack: 'income'
                         },
                         {
                             label: 'Despesas',
                             data: {{ chart_data.expense_data|tojson|safe }},
-                            backgroundColor: 'rgba(245, 54, 92, 0.5)',
-                            borderColor: 'rgba(245, 54, 92, 1)',
+                            backgroundColor: 'rgba(231, 74, 59, 0.5)', /* Vermelho do Card de Despesas */
+                            borderColor: 'rgba(231, 74, 59, 1)',
                             borderWidth: 1
                         }
                     ]
@@ -188,6 +211,16 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                filter: function(item, chart) {
+                                    // Oculta apenas "Realizadas" e "Agendadas" da legenda
+                                    return item.text !== 'Realizadas' && item.text !== 'Agendadas';
+                                }
+                            }
+                        }
+                    },
                     scales: {
                         x: {
                             stacked: true,
